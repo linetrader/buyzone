@@ -1,0 +1,1 @@
+// src/app/[locale]/(site)/tree/sponser/page.tsx

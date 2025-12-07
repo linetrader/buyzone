@@ -1,4 +1,3 @@
-// src/app/api/(site)/auth/signup/service.ts
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import {
@@ -15,10 +14,10 @@ export type SignupServiceInput = {
   password: string;
   name: string;
   countryCode: string | null;
-  /** ✅ 필수로 변경 */
+  /** ✅ 필수: 추천인 ID */
   referrerId: string;
+  /** ✅ 필수: 후원인 ID (없을 경우 로직에 따라 처리, 여기서는 nullable로 둠) */
   sponsorId: string | null;
-  /** ✅ 제거됨: createEdge */
   requestedGroupNo?: number | null;
 };
 
@@ -41,6 +40,7 @@ function extractUniqueTarget(e: unknown): string | undefined {
   return undefined;
 }
 
+// 추천 조직도상 다음 포지션 계산
 async function getNextPosition(
   tx: Prisma.TransactionClient,
   parentId: string,
@@ -62,7 +62,7 @@ export async function signupWithTransaction(input: SignupServiceInput) {
     name,
     countryCode,
     referrerId,
-    sponsorId,
+    sponsorId, // ✅ 후원인 ID
     requestedGroupNo,
   } = input;
 
@@ -75,7 +75,7 @@ export async function signupWithTransaction(input: SignupServiceInput) {
     try {
       const user = await prisma.$transaction(
         async (tx: Prisma.TransactionClient) => {
-          // 1) User
+          // 1) User 생성
           const u = await tx.user.create({
             data: {
               username,
@@ -83,9 +83,8 @@ export async function signupWithTransaction(input: SignupServiceInput) {
               name,
               passwordHash,
               countryCode,
-              /** ✅ 필수 */
-              referrerId,
-              sponsorId,
+              referrerId, // ✅ 추천인 연결
+              sponsorId,  // ✅ 후원인 연결 (DB에 저장됨)
               referralCode,
             },
             select: {
@@ -101,16 +100,16 @@ export async function signupWithTransaction(input: SignupServiceInput) {
             },
           });
 
-          // 2) Wallet
+          // 2) Wallet 생성
           await tx.userWallet.create({ data: { userId: u.id } });
 
-          // 3) Reward Summary
+          // 3) Reward Summary 생성
           await tx.userRewardSummary.create({ data: { userId: u.id } });
 
-          // 4) Referral Stats
+          // 4) Referral Stats 생성
           await tx.userReferralStats.create({ data: { userId: u.id } });
 
-          // 5) ✅ Referral Edge (+ 부모 그룹 요약 보장) — 항상 수행
+          // 5) ✅ 추천 조직도 (Referral Edge) 생성
           const depth = await computeDepthForChild(tx, referrerId);
           const finalGroupNo = await decideGroupNoOrThrow({
             tx,
@@ -129,7 +128,12 @@ export async function signupWithTransaction(input: SignupServiceInput) {
             },
           });
 
+          // 부모 그룹 요약 업데이트
           await ensureParentGroupSummary(tx, referrerId, finalGroupNo);
+
+          /* ✅ 후원 조직도 (Sponsor Tree) 관련 로직이 필요하다면 여기에 추가 
+             예: SponsorEdge 생성 등. 현재는 User 테이블의 sponsorId 필드에 저장하는 것으로 충분하다고 가정.
+          */
 
           return u;
         }
@@ -139,13 +143,18 @@ export async function signupWithTransaction(input: SignupServiceInput) {
     } catch (e: unknown) {
       const code = getErrorCode(e);
 
+      // Unique Constraint Violation (P2002) 처리
       if (code === "P2002") {
         const target = extractUniqueTarget(e);
+        
+        // 추천코드 중복 시 재시도
         if (typeof target === "string" && target.includes("referralCode")) {
           if (attempt < MAX_RETRY - 1) {
-            continue; // 추천코드 충돌이면 재시도
+            continue;
           }
         }
+        
+        // 그 외 중복 (아이디, 이메일 등)
         return { ok: false as const, code: "VALIDATION_ERROR" as const };
       }
 
@@ -156,6 +165,7 @@ export async function signupWithTransaction(input: SignupServiceInput) {
         };
       }
 
+      console.error("Signup Transaction Error:", e); // 디버깅용 로그
       return { ok: false as const, code: "UNKNOWN" as const };
     }
   }

@@ -1,4 +1,3 @@
-// src/app/[locale]/(site)/auth/signup/view/EmailField.tsx
 "use client";
 
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
@@ -17,18 +16,18 @@ export default function EmailField(props: {
   const t = useTranslations("auth.signup");
 
   return (
-    <label className="form-control w-full">
-      <div className="label">
-        <span className="label-text flex items-center gap-2">
+    <div className="form-control w-full">
+      <label className="label pt-0 pb-1.5" htmlFor="email">
+        <span className="label-text flex items-center gap-2 font-bold text-sm text-gray-700">
           <EnvelopeIcon className="h-4 w-4" aria-hidden />
           {t("fields.email.label")}
         </span>
-      </div>
+      </label>
       <input
         id="email"
         type="email"
-        className={`input input-bordered w-full ${
-          hasError ? "input-error" : ""
+        className={`input input-bordered w-full h-11 text-sm bg-gray-50 border-gray-300 text-gray-900 focus:bg-white focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] transition-all ${
+          hasError ? "input-error border-error" : ""
         }`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -36,12 +35,13 @@ export default function EmailField(props: {
         placeholder={t("fields.email.placeholder")}
         disabled={loading}
       />
-      <div className="label">
-        <span className="label-text-alt text-error">
-          {serverError ||
-            (submitted && !emailOk ? t("validation.emailInvalid") : "")}
+      
+      {/* ✅ [수정] 에러 메시지 공간 미리 확보 (min-h-[24px]) */}
+      <div className="min-h-[24px] pt-1 pl-1">
+        <span className="text-xs font-medium text-error">
+          {serverError || (submitted && !emailOk ? t("validation.emailInvalid") : "")}
         </span>
       </div>
-    </label>
+    </div>
   );
 }

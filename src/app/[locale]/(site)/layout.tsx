@@ -1,4 +1,3 @@
-// src/app/[locale]/(site)/layout.tsx
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -6,7 +5,7 @@ import React from "react";
 import { cookies } from "next/headers";
 import { jwtVerify, type JWTPayload } from "jose";
 import MainHeader from "@/components/MainHeader/MainHeader";
-import MainFooter from "@/components/MainFooter/MainFooter";
+// MainFooter import 제거됨
 
 const COOKIE_NAME = process.env.JWT_COOKIE_NAME || "qflow_token";
 const JWT_ISSUER = process.env.JWT_ISSUER;
@@ -52,12 +51,12 @@ export default async function SiteLayout(props: { children: React.ReactNode }) {
       <MainHeader authed={authed} userLevel={userLevel} />
       <main
         id="main"
-        className="container mx-auto flex-1 px-4 py-4 pb-[calc(64px+env(safe-area-inset-bottom))]"
+        className="container mx-auto flex-1 px-4 py-4 pb-[calc(20px+env(safe-area-inset-bottom))]"
         role="main"
       >
         {props.children}
       </main>
-      <MainFooter />
+      {/* MainFooter 제거됨 */}
     </div>
   );
 }

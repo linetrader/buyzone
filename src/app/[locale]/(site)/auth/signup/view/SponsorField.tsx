@@ -1,45 +1,45 @@
 "use client";
 
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { UsersIcon } from "@heroicons/react/24/outline";
 
-export type ReferrerFieldProps = {
+export type SponsorFieldProps = {
   value: string;
   onChange: (v: string) => void;
   loading: boolean;
-  refStatus: null | "ok" | "fail";
+  status: null | "ok" | "fail";
   onSearch: () => void;
   submitted: boolean;
-  referrerOk: boolean;
+  isValid: boolean;
 };
 
-export default function ReferrerField(props: ReferrerFieldProps) {
-  const { value, onChange, loading, refStatus, onSearch, submitted, referrerOk } = props;
-  const showRequiredError = submitted && !referrerOk;
+export default function SponsorField(props: SponsorFieldProps) {
+  const { value, onChange, loading, status, onSearch, submitted, isValid } = props;
+  const showRequiredError = submitted && !isValid;
 
   return (
     <div className="form-control w-full">
       {/* 라벨 영역 */}
       <div className="label pt-0 pb-1.5">
         <span className="label-text flex items-center gap-2 font-bold text-sm text-gray-700">
-          <MagnifyingGlassIcon className="h-4 w-4" aria-hidden />
-          추천인 <span className="text-error ml-1">*</span>
+          <UsersIcon className="h-4 w-4" aria-hidden />
+          후원인 <span className="text-error ml-1">*</span>
         </span>
       </div>
 
       {/* 입력창 + 검색 버튼 */}
       <div className="join w-full">
         <input
-          id="ref"
+          id="sponsor"
           className="input input-bordered join-item w-full h-11 text-sm bg-gray-50 border-gray-300 text-gray-900 focus:bg-white focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] transition-all placeholder:text-gray-400"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="추천인 아이디를 입력하세요"
+          placeholder="후원인 아이디를 입력하세요"
           disabled={loading}
           required
         />
         <button
           type="button"
-          // ✅ 검색 버튼: 보라색 배경으로 강조하여 잘 보이게 수정
+          // ✅ 검색 버튼: 보라색 배경으로 강조
           className="btn btn-primary join-item h-11 px-6 bg-[#4F46E5] hover:bg-[#4338ca] border-none text-white font-bold"
           onClick={onSearch}
           disabled={loading || value.trim().length === 0}
@@ -49,18 +49,16 @@ export default function ReferrerField(props: ReferrerFieldProps) {
       </div>
 
       {/* ✅ [수정 핵심] 메시지 영역 높이 고정 (min-h-[24px]) */}
-      {/* 메시지가 없어도 공간을 차지하고 있어, 메시지가 떠도 아래 요소가 밀리지 않음 */}
       <div className="min-h-[24px] mt-1 pl-1 flex items-start">
         <span className="text-xs font-medium">
           {showRequiredError ? (
-            <span className="text-error">추천인을 입력해주세요.</span>
-          ) : refStatus === "ok" ? (
+            <span className="text-error">후원인을 입력해주세요.</span>
+          ) : status === "ok" ? (
             <span className="text-success">확인되었습니다.</span>
-          ) : refStatus === "fail" ? (
+          ) : status === "fail" ? (
             <span className="text-error">존재하지 않는 사용자입니다.</span>
           ) : (
-            // 메시지가 없을 때도 빈 공간 유지 (레이아웃 흔들림 방지)
-            <span className="opacity-0">Message Space</span> 
+            <span className="opacity-0">Message Space</span>
           )}
         </span>
       </div>

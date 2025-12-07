@@ -1,4 +1,3 @@
-// src/app/api/(site)/auth/signup/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
@@ -6,7 +5,7 @@ import {
   type ApiErrCode,
   type SignupInput,
   type SignupResponse,
-} from "@/types/auth"; // 경로는 기존 사용처 유지
+} from "@/types/auth";
 import { normalizeInput } from "./helpers";
 import {
   resolveUserIdByUsernameOrReferral,
@@ -42,8 +41,8 @@ export async function POST(req: Request) {
     email,
     password,
     name,
-    referrer, // ✅ 필수 (스키마에서 min(1))
-    sponsor,
+    referrer, // ✅ 필수
+    sponsor,  // ✅ 선택 (없으면 null/빈문자열)
     countryCode,
     groupNo,
   }: SignupInput = parsed.data;
@@ -51,11 +50,11 @@ export async function POST(req: Request) {
   const uname = normalizeInput(username).toLowerCase();
   const em = normalizeInput(email).toLowerCase();
   const nm = normalizeInput(name);
-  const ref = normalizeInput(referrer); // ✅ 공백 제거 후 빈 문자열이면 스키마 단계에서 걸러짐
+  const ref = normalizeInput(referrer);
   const spon = normalizeInput(sponsor ?? "");
   const ccRaw = normalizeInput(countryCode ?? "");
 
-  // groupNo 선제 검증(양의 정수만 허용)
+  // groupNo 검증
   if (groupNo != null && (!Number.isInteger(groupNo) || groupNo <= 0)) {
     return NextResponse.json<SignupResponse>(
       { ok: false, code: "INVALID_REQUESTED_GROUP_NO" },
@@ -63,7 +62,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 1) 중복 검사
+  // 1) 중복 검사 (DB)
   const [duUser, duEmail] = await Promise.all([
     prisma.user.findUnique({ where: { username: uname } }),
     prisma.user.findUnique({ where: { email: em } }),
@@ -81,7 +80,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 2) 국가 코드 확인(선택)
+  // 2) 국가 코드 확인
   let normalizedCountryCode: string | null = null;
   if (ccRaw) {
     if (!/^[A-Za-z]{2}$/.test(ccRaw)) {
@@ -103,7 +102,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // 3) 추천인/후원인 처리 (✅ referrer는 필수)
+  // 3) 추천인(Referrer) ID 확인 (필수)
   const referrerId = await resolveUserIdByUsernameOrReferral(ref);
   if (!referrerId) {
     return NextResponse.json<SignupResponse>(
@@ -112,32 +111,31 @@ export async function POST(req: Request) {
     );
   }
 
+  // 4) 후원인(Sponsor) ID 확인 (입력된 경우만)
   let sponsorId: string | null = null;
   if (spon) {
     sponsorId = await resolveUserIdByUsernameOrReferral(spon);
     if (!sponsorId) {
       return NextResponse.json<SignupResponse>(
-        { ok: false, code: "SPONSOR_NOT_FOUND" },
+        { ok: false, code: "SPONSOR_NOT_FOUND" }, // 프론트엔드 에러 코드와 매칭됨
         { status: 400 }
       );
     }
   }
-  if (sponsorId && sponsorId === referrerId) {
-    return NextResponse.json<SignupResponse>(
-      { ok: false, code: "VALIDATION_ERROR" },
-      { status: 400 }
-    );
-  }
+  
+  /* * [수정됨] 추천인과 후원인이 같을 수 없다는 제약조건을 제거했습니다.
+   * 보통 추천인이 곧 후원인(배치상위자)이 되는 경우가 많으므로 허용하는 것이 일반적입니다.
+   */
 
-  // 4) 트랜잭션 실행 (✅ createEdge 제거, referrerId 필수 전달)
+  // 5) 트랜잭션 서비스 실행
   const result = await signupWithTransaction({
     username: uname,
     email: em,
     password,
     name: nm,
     countryCode: normalizedCountryCode,
-    referrerId, // ✅ required
-    sponsorId,
+    referrerId, // ✅ 필수
+    sponsorId,  // ✅ 전달 (null 가능)
     requestedGroupNo: groupNo ?? null,
   });
 
@@ -156,13 +154,14 @@ export async function POST(req: Request) {
     return NextResponse.json<SignupResponse>({ ok: false, code }, { status });
   }
 
-  // 5) 가입 직후 부모 GroupSummary 보장 (best-effort)
+  // 6) 후속 처리 (GroupSummary 보장)
   try {
     await ensureParentGroupSummaryForChildSignup(result.user.id);
   } catch (e) {
     console.warn("[signup] ensureParentGroupSummaryForChildSignup failed:", e);
   }
 
+  // 성공 응답
   const res = NextResponse.json<SignupResponse>(
     { ok: true, user: result.user },
     { status: 201 }
