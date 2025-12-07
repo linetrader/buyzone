@@ -61,7 +61,6 @@ export async function decideGroupNoOrThrow(opts: {
 }): Promise<number> {
   const { tx, parentId, requested } = opts;
 
-  // 명시된 번호가 유효하면 그대로 사용 (1 이상 정수만 허용)
   if (requested != null) {
     if (!Number.isInteger(requested) || requested <= 0) {
       const err = new Error("INVALID_REQUESTED_GROUP_NO");
@@ -71,7 +70,6 @@ export async function decideGroupNoOrThrow(opts: {
     return requested;
   }
 
-  // 자동 할당: ReferralGroupSummary 기준으로 현재 최대 groupNo + 1
   const agg = await tx.referralGroupSummary.aggregate({
     where: { userId: parentId },
     _max: { groupNo: true },
@@ -89,15 +87,12 @@ export async function ensureParentGroupSummary(
   await tx.referralGroupSummary.upsert({
     where: { userId_groupNo: { userId: parentId, groupNo } },
     update: {},
-    create: { userId: parentId, groupNo }, // Decimal 필드는 default(0) 사용
+    create: { userId: parentId, groupNo },
   });
 }
 
 /**
  * 신규 가입한 child의 부모(Group) 요약을 보장
- * - Edge(childId=new user)에서 parentId/groupNo를 조회
- * - groupNo가 null이면 0으로 치환(기본 그룹)
- * - 트랜잭션 외부/내부 모두에서 재사용 가능(tx 주입 시 내부 사용)
  */
 export async function ensureParentGroupSummaryForChildSignup(
   childUserId: string,
@@ -112,10 +107,85 @@ export async function ensureParentGroupSummaryForChildSignup(
 
   if (!edge?.parentId) return;
 
-  const groupNo = edge.groupNo ?? 0; // null → 0 기본 그룹
+  const groupNo = edge.groupNo ?? 0;
   await db.referralGroupSummary.upsert({
     where: { userId_groupNo: { userId: edge.parentId, groupNo } },
     update: {},
-    create: { userId: edge.parentId, groupNo }, // Decimal 필드는 default(0)
+    create: { userId: edge.parentId, groupNo },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* ✅ SponsorEdge helpers                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sponsor 부모 depth + 1
+ * - SponsorEdge도 @@unique([childId])를 전제로 childId 기준 단건 조회
+ */
+export async function computeSponsorDepthForChild(
+  tx: Prisma.TransactionClient,
+  parentId: string
+): Promise<number> {
+  const parentEdge = await tx.sponsorEdge.findUnique({
+    where: { childId: parentId },
+    select: { depth: true },
+  });
+  const parentDepth = parentEdge?.depth ?? 0;
+  return parentDepth + 1;
+}
+
+/**
+ * Sponsor groupNo 결정
+ * - 요청값이 유효하면 사용
+ * - 없으면 SponsorEdge 기준으로 현재 최대 groupNo + 1
+ *
+ * ⚠️ SponsorGroupSummary가 존재한다면 그 기준으로 바꾸는 것을 권장
+ */
+export async function decideSponsorGroupNoOrThrow(opts: {
+  tx: Prisma.TransactionClient;
+  parentId: string;
+  requested?: number | null;
+}): Promise<number> {
+  const { tx, parentId, requested } = opts;
+
+  if (requested != null) {
+    if (!Number.isInteger(requested) || requested <= 0) {
+      const err = new Error("INVALID_REQUESTED_GROUP_NO");
+      (err as unknown as { code: string }).code = "INVALID_REQUESTED_GROUP_NO";
+      throw err;
+    }
+    return requested;
+  }
+
+  const agg = await tx.sponsorEdge.aggregate({
+    where: { parentId },
+    _max: { groupNo: true },
+  });
+  const currentMax = agg._max.groupNo ?? 0;
+  return currentMax + 1;
+}
+
+/** Sponsor 조직도상 다음 포지션 계산 */
+export async function getNextSponsorPosition(
+  tx: Prisma.TransactionClient,
+  parentId: string,
+  groupNo: number
+): Promise<number> {
+  const agg = await tx.sponsorEdge.aggregate({
+    where: { parentId, groupNo },
+    _max: { position: true },
+  });
+  const currentMax = agg._max.position ?? 0;
+  return currentMax + 1;
+}
+
+/** Sponsor 직대 자식 수 카운트 */
+export async function countSponsorChildren(
+  tx: Prisma.TransactionClient,
+  sponsorId: string
+): Promise<number> {
+  return tx.sponsorEdge.count({
+    where: { parentId: sponsorId },
   });
 }

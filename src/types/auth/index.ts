@@ -7,6 +7,9 @@ export type ApiErrCode =
   | "EMAIL_TAKEN"
   | "REFERRER_NOT_FOUND"
   | "SPONSOR_NOT_FOUND"
+  | "REFERRER_REQUIRED"
+  | "SPONSOR_REQUIRED"
+  | "SPONSOR_CHILD_LIMIT_REACHED"
   | "COUNTRY_CODE_INVALID"
   | "COUNTRY_NOT_FOUND"
   | "GROUP_NO_WITHOUT_REFERRER"
@@ -70,9 +73,13 @@ export const signupSchema = z.object({
     .refine((v) => /[A-Z]/.test(v), "mustContainUpper")
     .refine((v) => /[^A-Za-z0-9]/.test(v), "mustContainSymbol"),
   name: z.string().trim().min(1),
+
   /** ✅ 필수 */
   referrer: z.string().trim().min(1),
-  sponsor: z.string().trim().optional().nullable(),
+
+  /** ✅ 필수로 변경 */
+  sponsor: z.string().trim().min(1),
+
   countryCode: z
     .string()
     .trim()
@@ -83,6 +90,7 @@ export const signupSchema = z.object({
         v === null || v === undefined || v === "" || /^[A-Za-z]{2}$/.test(v),
       "invalidCountry"
     ),
+
   groupNo: z.number().int().min(1).optional().nullable(),
 });
 export type SignupInput = z.infer<typeof signupSchema>;
@@ -111,10 +119,13 @@ export type RefStatus =
   | { state: "ok"; username: string }
   | { state: "not_found" }
   | { state: "error" };
+
 export type RefStatusUI = "ok" | "fail" | null;
+
 export type SubmitResult =
   | { ok: true }
   | { ok: false; code: ApiErrCode; message?: string };
+
 export type ApiRes = SignupResponse;
 
 /** 폼 상태 타입 (훅/뷰 공통) */

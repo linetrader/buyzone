@@ -1,3 +1,4 @@
+// src/app/api/(site)/auth/signup/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     password,
     name,
     referrer, // ✅ 필수
-    sponsor,  // ✅ 선택 (없으면 null/빈문자열)
+    sponsor, // ✅ 필수로 변경
     countryCode,
     groupNo,
   }: SignupInput = parsed.data;
@@ -62,7 +63,21 @@ export async function POST(req: Request) {
     );
   }
 
-  // 1) 중복 검사 (DB)
+  // ✅ referrer/sponsor 입력 필수(서버 강제)
+  if (!ref) {
+    return NextResponse.json<SignupResponse>(
+      { ok: false, code: "REFERRER_REQUIRED" },
+      { status: 400 }
+    );
+  }
+  if (!spon) {
+    return NextResponse.json<SignupResponse>(
+      { ok: false, code: "SPONSOR_REQUIRED" },
+      { status: 400 }
+    );
+  }
+
+  // 1) 중복 검사
   const [duUser, duEmail] = await Promise.all([
     prisma.user.findUnique({ where: { username: uname } }),
     prisma.user.findUnique({ where: { email: em } }),
@@ -102,7 +117,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // 3) 추천인(Referrer) ID 확인 (필수)
+  // 3) 추천인 ID 확인 (필수)
   const referrerId = await resolveUserIdByUsernameOrReferral(ref);
   if (!referrerId) {
     return NextResponse.json<SignupResponse>(
@@ -111,21 +126,14 @@ export async function POST(req: Request) {
     );
   }
 
-  // 4) 후원인(Sponsor) ID 확인 (입력된 경우만)
-  let sponsorId: string | null = null;
-  if (spon) {
-    sponsorId = await resolveUserIdByUsernameOrReferral(spon);
-    if (!sponsorId) {
-      return NextResponse.json<SignupResponse>(
-        { ok: false, code: "SPONSOR_NOT_FOUND" }, // 프론트엔드 에러 코드와 매칭됨
-        { status: 400 }
-      );
-    }
+  // 4) 후원인 ID 확인 (필수)
+  const sponsorId = await resolveUserIdByUsernameOrReferral(spon);
+  if (!sponsorId) {
+    return NextResponse.json<SignupResponse>(
+      { ok: false, code: "SPONSOR_NOT_FOUND" },
+      { status: 400 }
+    );
   }
-  
-  /* * [수정됨] 추천인과 후원인이 같을 수 없다는 제약조건을 제거했습니다.
-   * 보통 추천인이 곧 후원인(배치상위자)이 되는 경우가 많으므로 허용하는 것이 일반적입니다.
-   */
 
   // 5) 트랜잭션 서비스 실행
   const result = await signupWithTransaction({
@@ -134,34 +142,34 @@ export async function POST(req: Request) {
     password,
     name: nm,
     countryCode: normalizedCountryCode,
-    referrerId, // ✅ 필수
-    sponsorId,  // ✅ 전달 (null 가능)
+    referrerId,
+    sponsorId,
     requestedGroupNo: groupNo ?? null,
   });
 
   if (!result.ok) {
     const raw = result.code as string;
-    const code: ApiErrCode =
-      raw === "GROUP_NO_TAKEN" ? "VALIDATION_ERROR" : (raw as ApiErrCode);
+    const code = raw as ApiErrCode;
 
     const status =
       code === "INVALID_REQUESTED_GROUP_NO"
         ? 400
         : code === "VALIDATION_ERROR"
         ? 409
+        : code === "SPONSOR_CHILD_LIMIT_REACHED"
+        ? 409
         : 500;
 
     return NextResponse.json<SignupResponse>({ ok: false, code }, { status });
   }
 
-  // 6) 후속 처리 (GroupSummary 보장)
+  // 6) 후속 처리 (Referral GroupSummary 보장)
   try {
     await ensureParentGroupSummaryForChildSignup(result.user.id);
   } catch (e) {
     console.warn("[signup] ensureParentGroupSummaryForChildSignup failed:", e);
   }
 
-  // 성공 응답
   const res = NextResponse.json<SignupResponse>(
     { ok: true, user: result.user },
     { status: 201 }

@@ -32,8 +32,13 @@ model User {
   walletTxs          WalletTx[]
   rewardHistory      UserRewardHistory[]
 
+  // ✅ 추천 조직도
   referralEdges ReferralEdge[]
   uplineEdges   ReferralEdge[] @relation("EdgeChild")
+
+  // ✅ 후원 조직도 (신규)
+  sponsorEdges  SponsorEdge[]
+  sponsorUpline SponsorEdge[] @relation("SponsorEdgeChild")
 
   referralGroups ReferralGroupSummary[]
   referralStats  UserReferralStats?

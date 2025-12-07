@@ -1,9 +1,15 @@
+// src/app/api/(site)/auth/signup/service.ts
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import {
   computeDepthForChild,
   decideGroupNoOrThrow,
   ensureParentGroupSummary,
+  // ✅ sponsor helpers
+  computeSponsorDepthForChild,
+  decideSponsorGroupNoOrThrow,
+  getNextSponsorPosition,
+  countSponsorChildren,
 } from "./referral";
 import { generateReferralCode } from "./helpers";
 import type { Prisma } from "@/generated/prisma";
@@ -14,12 +20,24 @@ export type SignupServiceInput = {
   password: string;
   name: string;
   countryCode: string | null;
+
   /** ✅ 필수: 추천인 ID */
   referrerId: string;
-  /** ✅ 필수: 후원인 ID (없을 경우 로직에 따라 처리, 여기서는 nullable로 둠) */
-  sponsorId: string | null;
+  /** ✅ 필수: 후원인 ID */
+  sponsorId: string;
+
   requestedGroupNo?: number | null;
 };
+
+type AppErrorCode =
+  | "INVALID_REQUESTED_GROUP_NO"
+  | "SPONSOR_CHILD_LIMIT_REACHED";
+
+function makeAppError(code: AppErrorCode): Error {
+  const err = new Error(code);
+  (err as unknown as { code: AppErrorCode }).code = code;
+  return err;
+}
 
 function getErrorCode(e: unknown): string | undefined {
   if (typeof e === "object" && e !== null && "code" in e) {
@@ -62,19 +80,26 @@ export async function signupWithTransaction(input: SignupServiceInput) {
     name,
     countryCode,
     referrerId,
-    sponsorId, // ✅ 후원인 ID
+    sponsorId,
     requestedGroupNo,
   } = input;
 
   const passwordHash = await bcrypt.hash(password, 12);
 
   const MAX_RETRY = 3;
+
   for (let attempt = 0; attempt < MAX_RETRY; attempt++) {
     const referralCode = generateReferralCode();
 
     try {
       const user = await prisma.$transaction(
         async (tx: Prisma.TransactionClient) => {
+          // ✅ 0) 스폰서 직대 2명 제한 체크 (트랜잭션 내부)
+          const currentChildren = await countSponsorChildren(tx, sponsorId);
+          if (currentChildren >= 2) {
+            throw makeAppError("SPONSOR_CHILD_LIMIT_REACHED");
+          }
+
           // 1) User 생성
           const u = await tx.user.create({
             data: {
@@ -83,8 +108,8 @@ export async function signupWithTransaction(input: SignupServiceInput) {
               name,
               passwordHash,
               countryCode,
-              referrerId, // ✅ 추천인 연결
-              sponsorId,  // ✅ 후원인 연결 (DB에 저장됨)
+              referrerId,
+              sponsorId,
               referralCode,
             },
             select: {
@@ -109,7 +134,7 @@ export async function signupWithTransaction(input: SignupServiceInput) {
           // 4) Referral Stats 생성
           await tx.userReferralStats.create({ data: { userId: u.id } });
 
-          // 5) ✅ 추천 조직도 (Referral Edge) 생성
+          // 5) ✅ 추천 조직도 (Referral Edge)
           const depth = await computeDepthForChild(tx, referrerId);
           const finalGroupNo = await decideGroupNoOrThrow({
             tx,
@@ -131,9 +156,28 @@ export async function signupWithTransaction(input: SignupServiceInput) {
           // 부모 그룹 요약 업데이트
           await ensureParentGroupSummary(tx, referrerId, finalGroupNo);
 
-          /* ✅ 후원 조직도 (Sponsor Tree) 관련 로직이 필요하다면 여기에 추가 
-             예: SponsorEdge 생성 등. 현재는 User 테이블의 sponsorId 필드에 저장하는 것으로 충분하다고 가정.
-          */
+          // 6) ✅ 후원 조직도 (Sponsor Edge) — ReferralEdge와 동일 패턴
+          const sDepth = await computeSponsorDepthForChild(tx, sponsorId);
+          const sGroupNo = await decideSponsorGroupNoOrThrow({
+            tx,
+            parentId: sponsorId,
+            requested: requestedGroupNo ?? null,
+          });
+          const sPosition = await getNextSponsorPosition(
+            tx,
+            sponsorId,
+            sGroupNo
+          );
+
+          await tx.sponsorEdge.create({
+            data: {
+              parentId: sponsorId,
+              childId: u.id,
+              groupNo: sGroupNo,
+              position: sPosition,
+              depth: sDepth,
+            },
+          });
 
           return u;
         }
@@ -143,19 +187,12 @@ export async function signupWithTransaction(input: SignupServiceInput) {
     } catch (e: unknown) {
       const code = getErrorCode(e);
 
-      // Unique Constraint Violation (P2002) 처리
-      if (code === "P2002") {
-        const target = extractUniqueTarget(e);
-        
-        // 추천코드 중복 시 재시도
-        if (typeof target === "string" && target.includes("referralCode")) {
-          if (attempt < MAX_RETRY - 1) {
-            continue;
-          }
-        }
-        
-        // 그 외 중복 (아이디, 이메일 등)
-        return { ok: false as const, code: "VALIDATION_ERROR" as const };
+      // ✅ 앱 커스텀 에러
+      if (code === "SPONSOR_CHILD_LIMIT_REACHED") {
+        return {
+          ok: false as const,
+          code: "SPONSOR_CHILD_LIMIT_REACHED" as const,
+        };
       }
 
       if (code === "INVALID_REQUESTED_GROUP_NO") {
@@ -165,7 +202,21 @@ export async function signupWithTransaction(input: SignupServiceInput) {
         };
       }
 
-      console.error("Signup Transaction Error:", e); // 디버깅용 로그
+      // Unique Constraint Violation (P2002)
+      if (code === "P2002") {
+        const target = extractUniqueTarget(e);
+
+        // 추천코드 중복 시 재시도
+        if (typeof target === "string" && target.includes("referralCode")) {
+          if (attempt < MAX_RETRY - 1) {
+            continue;
+          }
+        }
+
+        return { ok: false as const, code: "VALIDATION_ERROR" as const };
+      }
+
+      console.error("Signup Transaction Error:", e);
       return { ok: false as const, code: "UNKNOWN" as const };
     }
   }
