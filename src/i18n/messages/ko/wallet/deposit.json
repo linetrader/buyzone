@@ -14,7 +14,12 @@
   },
   "address": {
     "label": "지갑 주소",
+    "copy": "주소 복사",
     "copied": "주소가 복사되었습니다.",
     "clipboardUnsupported": "클립보드 미지원. 주소를 직접 복사하세요."
+  },
+  "history": {
+    "title": "최근 입금 내역",
+    "empty": "아직 입금 내역이 없습니다."
   }
 }

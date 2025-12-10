@@ -1,3 +1,5 @@
+// src/app/[locale]/admin/packages/form/page.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -5,8 +7,8 @@ import PackageCreateForm from "../view/PackageCreateForm";
 import { usePackageCreate } from "../hooks/usePackageCreate";
 
 export default function PackageCreateFormPage() {
-  const { DEC_RE, state, setName, setPrice, setDailyDftAmount, onSubmit } =
-    usePackageCreate();
+  // ✅ [수정] setDailyDftAmount 제거
+  const { DEC_RE, state, setName, setPrice, onSubmit } = usePackageCreate();
 
   return (
     <main className="p-4 md:p-6 space-y-4">
@@ -23,13 +25,12 @@ export default function PackageCreateFormPage() {
         </div>
       )}
 
+      {/* ✅ [수정] dailyDftAmount 관련 props 제거 */}
       <PackageCreateForm
         name={state.name}
         price={state.price}
-        dailyDftAmount={state.dailyDftAmount}
         setName={setName}
         setPrice={setPrice}
-        setDailyDftAmount={setDailyDftAmount}
         onSubmit={onSubmit}
         submitting={state.submitting}
         decPattern={DEC_RE.source}

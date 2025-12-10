@@ -4,24 +4,27 @@
     "title": "出金 (Withdraw)"
   },
   "panel": {
-    "priceFeeTitle": "価格と出金手数料のご案内",
+    "priceFeeTitle": "価格・出金手数料のご案内",
     "fee": "出金手数料: {fee}%",
-    "totalVal": "参考評価額: 約 {value} USDT"
+    "totalVal": "保有総評価額（参考）: ≈ {value} USDT"
+  },
+  "balance": {
+    "available": "出金可能残高"
   },
   "cards": {
-    "sectionTitle": "トークン別 出金申請",
+    "sectionTitle": "トークン別出金申請",
     "hold": "保有: {amount} {token}",
     "amountLabel": "数量",
     "amountPlaceholder": "数量を入力",
     "submitTitleInvalid": "有効な数量を入力してください。",
     "submit": "出金申請",
-    "est": "概算: 約 {value} USDT",
-    "invalid": "有効な数量を入力し、保有数量の範囲内で入力してください。"
+    "est": "トークン単価基準 ≈ {value} USDT",
+    "invalid": "有効な数量を、保有数量以内で入力してください。"
   },
   "loading": {
     "title": "出金",
     "loading": "読み込み中",
-    "loadingDetail": "ウォレット / 価格情報を読み込んでいます…"
+    "loadingDetail": "ウォレット/価格情報を読み込み中..."
   },
   "error": {
     "title": "出金",
@@ -29,10 +32,38 @@
     "retry": "再試行"
   },
   "toast": {
-    "processing": "処理中です。しばらくお待ちください。",
-    "withdrawFailTitle": "出金に失敗しました",
-    "withdrawOkTitle": "出金申請 完了",
-    "withdrawOkDesc": "出金申請を受け付けました。（保留）",
+    "processing": "リクエストを処理中です。しばらくお待ちください。",
+    "withdrawFailTitle": "出金失敗",
+    "withdrawOkTitle": "出金申請完了",
+    "withdrawOkDesc": "出金申請を受け付けました。（保留中）",
     "networkErrorTitle": "ネットワークエラー"
+  },
+  "submit": {
+    "invalidAmount": "無効な出金金額です。",
+    "requiredFields": "必須情報を入力してください。"
+  },
+  "notice": {
+    "title": "出金に関する注意事項",
+    "checkAddress": "入力されたウォレットアドレスが正確か必ず確認してください。",
+    "noRecovery": "誤入金の場合、復旧できない可能性があります。",
+    "minAmount": "最低出金金額は {amount} {symbol} です。"
+  },
+  "form": {
+    "networkTitle": "ネットワーク選択",
+    "addressLabel": "出金アドレス",
+    "addressPlaceholder": "ウォレットアドレスを入力またはペースト",
+    "amountLabel": "出金金額",
+    "amountPlaceholder": "最低 10 USDT",
+    "maxAmount": "最大入力",
+    "fee": "手数料: {fee} USDT",
+    "receive": "実受取額: {amount} USDT",
+    "otpLabel": "Google OTPコード",
+    "otpPlaceholder": "6桁のOTPコードを入力",
+    "submitButton": "出金申請する"
+  },
+  "history": {
+    "title": "最近の出金履歴",
+    "empty": "出金履歴がありません。",
+    "viewAll": "全ての履歴を表示"
   }
 }

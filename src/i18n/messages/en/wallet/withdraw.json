@@ -1,38 +1,69 @@
 {
   "header": {
-    "back": "Back",
+    "back": "Go Back",
     "title": "Withdraw"
   },
   "panel": {
-    "priceFeeTitle": "Prices & Withdrawal Fees",
-    "fee": "Withdrawal fee: {fee}%",
-    "totalVal": "Estimated total value: ≈ {value} USDT"
+    "priceFeeTitle": "Price & Withdrawal Fee Guide",
+    "fee": "Withdrawal Fee: {fee}%",
+    "totalVal": "Total estimated holdings (reference): ≈ {value} USDT"
+  },
+  "balance": {
+    "available": "Available Balance for Withdrawal"
   },
   "cards": {
-    "sectionTitle": "Withdraw by Token",
-    "hold": "Holding: {amount} {token}",
-    "amountLabel": "Amount",
-    "amountPlaceholder": "Enter amount",
-    "submitTitleInvalid": "Please enter a valid amount.",
-    "submit": "Request Withdraw",
-    "est": "Estimated value: ≈ {value} USDT",
-    "invalid": "Enter a valid amount within your balance."
+    "sectionTitle": "Withdrawal Request by Token",
+    "hold": "Holdings: {amount} {token}",
+    "amountLabel": "Quantity",
+    "amountPlaceholder": "Enter Quantity",
+    "submitTitleInvalid": "Enter a valid quantity.",
+    "submit": "Request Withdrawal",
+    "est": "Token price per unit ≈ {value} USDT",
+    "invalid": "Enter a valid quantity within your available holdings."
   },
   "loading": {
-    "title": "Withdraw",
-    "loading": "Loading",
-    "loadingDetail": "Loading wallet / price information…"
+    "title": "Withdrawal",
+    "loading": "Loading...",
+    "loadingDetail": "Loading wallet/price information..."
   },
   "error": {
-    "title": "Withdraw",
+    "title": "Withdrawal",
     "badge": "Error",
     "retry": "Retry"
   },
   "toast": {
-    "processing": "Processing your request. Please wait.",
+    "processing": "Request is being processed. Please wait.",
     "withdrawFailTitle": "Withdrawal Failed",
-    "withdrawOkTitle": "Withdrawal Submitted",
-    "withdrawOkDesc": "Your withdrawal request has been received. (pending)",
+    "withdrawOkTitle": "Withdrawal Request Submitted",
+    "withdrawOkDesc": "Withdrawal request has been submitted (Pending).",
     "networkErrorTitle": "Network Error"
+  },
+  "submit": {
+    "invalidAmount": "Invalid withdrawal amount.",
+    "requiredFields": "Please fill in all required fields."
+  },
+  "notice": {
+    "title": "Withdrawal Notice",
+    "checkAddress": "Please ensure the entered wallet address is correct.",
+    "noRecovery": "Funds may be lost if sent to the wrong address and cannot be recovered.",
+    "minAmount": "Minimum withdrawal amount is {amount} {symbol}."
+  },
+  "form": {
+    "networkTitle": "Select Network",
+    "addressLabel": "Withdrawal Address",
+    "addressPlaceholder": "Enter or paste wallet address",
+    "amountLabel": "Withdrawal Amount",
+    "amountPlaceholder": "Minimum 10 USDT",
+    "maxAmount": "Max Amount",
+    "fee": "Fee: {fee} USDT",
+    "receive": "Net Receipt: {amount} USDT",
+    "otpLabel": "Google OTP Code",
+    "otpPlaceholder": "Enter 6-digit OTP code",
+    "submitButton": "Submit Withdrawal Request"
+  },
+  "history": {
+    "title": "Recent Withdrawal History",
+    "empty": "No withdrawal history.",
+    "viewAll": "View All History"
   }
 }

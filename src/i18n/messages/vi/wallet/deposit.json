@@ -1,20 +1,25 @@
 {
   "header": {
     "back": "Quay lại",
-    "preparing": "Đang chuẩn bị địa chỉ nạp…",
+    "preparing": "Đang chuẩn bị địa chỉ nạp...",
     "errorRetry": "Thử lại",
-    "network": "Mạng: {name}"
+    "network": "Mạng lưới: {name}"
   },
   "qr": {
-    "generating": "Đang tạo QR…",
+    "generating": "Đang tạo QR...",
     "none": "Không có QR",
-    "preparingAddr": "Đang chuẩn bị địa chỉ…",
+    "preparingAddr": "Đang chuẩn bị địa chỉ...",
     "noAddr": "Không có địa chỉ",
-    "hint": "Bạn có thể quét QR bằng ứng dụng ví để nhập địa chỉ."
+    "hint": "Quét mã QR bằng ứng dụng ví của bạn để nhập địa chỉ."
   },
   "address": {
-    "label": "Địa chỉ ví",
+    "label": "Địa chỉ Ví",
+    "copy": "Sao chép Địa chỉ",
     "copied": "Đã sao chép địa chỉ.",
-    "clipboardUnsupported": "Không hỗ trợ clipboard. Vui lòng sao chép thủ công."
+    "clipboardUnsupported": "Bộ nhớ tạm không được hỗ trợ. Vui lòng sao chép địa chỉ thủ công."
+  },
+  "history": {
+    "title": "Lịch sử Nạp gần đây",
+    "empty": "Chưa có lịch sử nạp tiền."
   }
 }

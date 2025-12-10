@@ -1,4 +1,4 @@
-// src/guards/admin/packages-history.ts
+// src/app/[locale]/admin/packages/history/guards/history.ts
 import type {
   PackageHistoryListResponse,
   PackageHistoryRow,

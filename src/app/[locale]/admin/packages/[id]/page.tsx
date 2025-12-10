@@ -1,3 +1,5 @@
+// src/app/[locale]/admin/packages/[id]/page.tsx
+
 "use client";
 
 import Link from "next/link";

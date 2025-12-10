@@ -1,4 +1,4 @@
-// src/app/admin/packages/history/hooks/usePackageHistory.ts
+// src/app/[locale]/admin/packages/history/hooks/usePackageHistory.ts
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

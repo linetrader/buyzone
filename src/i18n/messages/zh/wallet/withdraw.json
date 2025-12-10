@@ -4,24 +4,27 @@
     "title": "提现 (Withdraw)"
   },
   "panel": {
-    "priceFeeTitle": "价格与提现手续费",
-    "fee": "提现手续费：{fee}%",
-    "totalVal": "参考总估值：≈ {value} USDT"
+    "priceFeeTitle": "价格与提现手续费指南",
+    "fee": "提现手续费: {fee}%",
+    "totalVal": "我的持仓总估值（参考）: ≈ {value} USDT"
+  },
+  "balance": {
+    "available": "可提现余额"
   },
   "cards": {
-    "sectionTitle": "按代币发起提现",
-    "hold": "持有：{amount} {token}",
+    "sectionTitle": "按代币提现申请",
+    "hold": "持有: {amount} {token}",
     "amountLabel": "数量",
-    "amountPlaceholder": "请输入数量",
+    "amountPlaceholder": "输入数量",
     "submitTitleInvalid": "请输入有效数量。",
-    "submit": "提交提现",
-    "est": "估算折合：≈ {value} USDT",
-    "invalid": "请输入有效数量，并在持有数量范围内操作。"
+    "submit": "申请提现",
+    "est": "代币单价基准 ≈ {value} USDT",
+    "invalid": "请输入有效数量并在持有范围内。"
   },
   "loading": {
     "title": "提现",
     "loading": "加载中",
-    "loadingDetail": "正在加载钱包 / 价格信息…"
+    "loadingDetail": "正在加载钱包/价格信息..."
   },
   "error": {
     "title": "提现",
@@ -29,10 +32,38 @@
     "retry": "重试"
   },
   "toast": {
-    "processing": "正在处理，请稍候。",
+    "processing": "请求正在处理中，请稍候。",
     "withdrawFailTitle": "提现失败",
     "withdrawOkTitle": "提现申请已提交",
-    "withdrawOkDesc": "提现申请已受理。（等待处理）",
+    "withdrawOkDesc": "提现申请已受理 (待处理)。",
     "networkErrorTitle": "网络错误"
+  },
+  "submit": {
+    "invalidAmount": "提现金额无效。",
+    "requiredFields": "请输入所有必填信息。"
+  },
+  "notice": {
+    "title": "提现注意事项",
+    "checkAddress": "请务必确认输入的钱包地址是否正确。",
+    "noRecovery": "误入金将无法恢复。",
+    "minAmount": "最低提现金额为 {amount} {symbol}。"
+  },
+  "form": {
+    "networkTitle": "选择网络",
+    "addressLabel": "提现地址",
+    "addressPlaceholder": "输入或粘贴钱包地址",
+    "amountLabel": "提现金额",
+    "amountPlaceholder": "最低 10 USDT",
+    "maxAmount": "最大输入",
+    "fee": "手续费: {fee} USDT",
+    "receive": "实际到账: {amount} USDT",
+    "otpLabel": "Google OTP 代码",
+    "otpPlaceholder": "输入 6位OTP 代码",
+    "submitButton": "提交提现申请"
+  },
+  "history": {
+    "title": "最近提现记录",
+    "empty": "暂无提现记录。",
+    "viewAll": "查看全部记录"
   }
 }

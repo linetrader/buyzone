@@ -1,3 +1,5 @@
+// src/app/[locale]/admin/packages/hooks/usePackageDetail.ts
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";

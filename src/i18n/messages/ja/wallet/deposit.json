@@ -1,20 +1,25 @@
 {
   "header": {
     "back": "戻る",
-    "preparing": "入金アドレスを準備しています…",
+    "preparing": "入金アドレスを準備中...",
     "errorRetry": "再試行",
     "network": "ネットワーク: {name}"
   },
   "qr": {
-    "generating": "QR を生成しています…",
-    "none": "QR なし",
-    "preparingAddr": "アドレスを準備中…",
-    "noAddr": "アドレスなし",
-    "hint": "ウォレットアプリで QR をスキャンしてアドレスを入力できます。"
+    "generating": "QR生成中...",
+    "none": "QRなし",
+    "preparingAddr": "アドレス準備中...",
+    "noAddr": "アドレスがありません",
+    "hint": "ウォレットアプリでQRコードをスキャンしてアドレスを入力してください。"
   },
   "address": {
     "label": "ウォレットアドレス",
-    "copied": "アドレスをコピーしました。",
-    "clipboardUnsupported": "クリップボードがサポートされていません。アドレスを手動でコピーしてください。"
+    "copy": "アドレスをコピー",
+    "copied": "アドレスがコピーされました。",
+    "clipboardUnsupported": "クリップボード非対応。アドレスを直接コピーしてください。"
+  },
+  "history": {
+    "title": "最近の入金履歴",
+    "empty": "まだ入金履歴がありません。"
   }
 }

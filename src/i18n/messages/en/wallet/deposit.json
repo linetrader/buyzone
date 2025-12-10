@@ -1,20 +1,25 @@
 {
   "header": {
-    "back": "Back",
-    "preparing": "Preparing your deposit address…",
+    "back": "Go Back",
+    "preparing": "Preparing deposit address...",
     "errorRetry": "Retry",
     "network": "Network: {name}"
   },
   "qr": {
-    "generating": "Generating QR…",
-    "none": "No QR",
-    "preparingAddr": "Preparing address…",
-    "noAddr": "No address",
-    "hint": "Scan the QR with your wallet app to input the address."
+    "generating": "Generating QR...",
+    "none": "No QR code",
+    "preparingAddr": "Preparing address...",
+    "noAddr": "No address available",
+    "hint": "Scan the QR code with your wallet app to input the address."
   },
   "address": {
     "label": "Wallet Address",
-    "copied": "Address copied.",
-    "clipboardUnsupported": "Clipboard unsupported. Please copy the address manually."
+    "copy": "Copy Address",
+    "copied": "Address copied successfully.",
+    "clipboardUnsupported": "Clipboard not supported. Please copy the address manually."
+  },
+  "history": {
+    "title": "Recent Deposit History",
+    "empty": "No deposit history yet."
   }
 }

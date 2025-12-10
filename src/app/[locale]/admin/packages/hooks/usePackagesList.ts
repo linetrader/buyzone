@@ -1,6 +1,8 @@
+// src/app/[locale]/admin/packages/hooks/usePackagesList.ts
+
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { ListResp } from "@/types/admin/packages";
 //import { isListResp } from "@/guards/admin-packages";
 //import { isAbortError } from "@/guards/net";
@@ -18,8 +20,17 @@ export function usePackagesList(params: {
   const [data, setData] = useState<ListResp | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ✅ [추가] 재조회를 트리거하기 위한 키 상태
+  const [refreshKey, setRefreshKey] = useState<number>(0);
+
   const acRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
+
+  // ✅ [추가] 외부에서 호출하면 목록을 다시 불러오는 함수
+  const reload = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
 
   useEffect(() => {
     acRef.current?.abort();
@@ -59,8 +70,11 @@ export function usePackagesList(params: {
     })();
 
     return () => ac.abort();
-  }, [page, size, q, toast]);
+    // ✅ [수정] refreshKey가 변경되면 useEffect가 다시 실행됨
+  }, [page, size, q, toast, refreshKey]);
 
   const items = useMemo(() => data?.items ?? [], [data]);
-  return { data, items, loading, error };
+
+  // ✅ [수정] reload 함수를 반환 객체에 포함
+  return { data, items, loading, error, reload };
 }

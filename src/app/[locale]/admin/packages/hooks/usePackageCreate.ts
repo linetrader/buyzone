@@ -1,3 +1,5 @@
+// src/app/[locale]/admin/packages/hooks/usePackageCreate.ts
+
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -12,7 +14,8 @@ const DEC_RE = /^[0-9]+(\.[0-9]+)?$/;
 export function usePackageCreate() {
   const [name, setName] = useState<string>("");
   const [price, setPrice] = useState<string>("");
-  const [dailyDftAmount, setDailyDftAmount] = useState<string>("");
+  // dailyDftAmount 상태는 화면에 없으므로 제거 유지
+
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const acRef = useRef<AbortController | null>(null);
@@ -27,10 +30,7 @@ export function usePackageCreate() {
     []
   );
 
-  const isValid =
-    name.trim().length > 0 &&
-    DEC_RE.test(price.trim()) &&
-    DEC_RE.test(dailyDftAmount.trim());
+  const isValid = name.trim().length > 0 && DEC_RE.test(price.trim());
 
   const onSubmit = useCallback(async () => {
     setError(null);
@@ -54,13 +54,15 @@ export function usePackageCreate() {
         body: JSON.stringify({
           name: name.trim(),
           price: price.trim(),
-          dailyDftAmount: dailyDftAmount.trim(),
+          // ✅ [수정] 백엔드 유효성 검사 통과를 위해 기본값 "0" 전송
+          dailyDftAmount: "0",
         }),
         signal: ac.signal,
       });
       const body = safeParse(await r.text());
       if (!r.ok || !isCreateResp(body))
         throw new Error(r.ok ? "INVALID_RESPONSE" : `HTTP_${r.status}`);
+
       router.replace(`/admin/packages/${body.item.id}`);
       router.refresh();
       toast({ title: "등록 완료", description: body.item.name });
@@ -76,14 +78,13 @@ export function usePackageCreate() {
       clearTimeout(timeout);
       setSubmitting(false);
     }
-  }, [name, price, dailyDftAmount, isValid, router, toast]);
+  }, [name, price, isValid, router, toast]);
 
   return {
     DEC_RE,
-    state: { name, price, dailyDftAmount, submitting, error, isValid },
+    state: { name, price, submitting, error, isValid },
     setName,
     setPrice,
-    setDailyDftAmount,
     onSubmit,
   };
 }

@@ -1,4 +1,4 @@
-// src/app/admin/packages/history/view/HistoryFiltersView.tsx
+// src/app/[locale]/admin/packages/history/view/HistoryFiltersView.tsx
 "use client";
 
 import { useMemo } from "react";

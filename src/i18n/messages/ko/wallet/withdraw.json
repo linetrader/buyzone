@@ -8,6 +8,9 @@
     "fee": "출금 수수료: {fee}%",
     "totalVal": "내 보유 총 평가액(참고): ≈ {value} USDT"
   },
+  "balance": {
+    "available": "출금 가능 잔액"
+  },
   "cards": {
     "sectionTitle": "토큰별 출금 신청",
     "hold": "보유: {amount} {token}",
@@ -34,5 +37,33 @@
     "withdrawOkTitle": "출금 신청 완료",
     "withdrawOkDesc": "출금 신청이 접수되었습니다. (대기)",
     "networkErrorTitle": "네트워크 오류"
+  },
+  "submit": {
+    "invalidAmount": "유효하지 않은 출금 금액입니다.",
+    "requiredFields": "필수 정보를 입력해주세요."
+  },
+  "notice": {
+    "title": "출금 유의사항",
+    "checkAddress": "입력하신 지갑 주소가 정확한지 반드시 확인해주세요.",
+    "noRecovery": "오입금 시 복구가 불가능할 수 있습니다.",
+    "minAmount": "최소 출금 금액은 {amount} {symbol} 입니다."
+  },
+  "form": {
+    "networkTitle": "네트워크 선택",
+    "addressLabel": "출금 주소",
+    "addressPlaceholder": "지갑 주소를 입력하거나 붙여넣으세요",
+    "amountLabel": "출금 금액",
+    "amountPlaceholder": "최소 10 USDT",
+    "maxAmount": "최대 입력",
+    "fee": "수수료: {fee} USDT",
+    "receive": "실수령액: {amount} USDT",
+    "otpLabel": "Google OTP 코드",
+    "otpPlaceholder": "6자리 OTP 코드 입력",
+    "submitButton": "출금 신청하기"
+  },
+  "history": {
+    "title": "최근 출금 내역",
+    "empty": "출금 내역이 없습니다.",
+    "viewAll": "전체 내역 조회"
   }
 }

@@ -1,4 +1,4 @@
-// src/app/admin/packages/history/view/HistoryTableView.tsx
+// src/app/[locale]/admin/packages/history/view/HistoryTableView.tsx
 "use client";
 
 import type { PackageHistoryRow } from "@/types/admin/packages/history";

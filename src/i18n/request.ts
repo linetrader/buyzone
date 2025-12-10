@@ -14,11 +14,9 @@ const NAMESPACES = [
   "packages",
   "reward",
   "selfSignup",
-  "wallet",
   "wallet/deposit",
   "wallet/withdraw",
-  "menu/announcement",
-  "menu/group",
+  "notice",
 ] as const;
 type Namespace = (typeof NAMESPACES)[number];
 

@@ -3,17 +3,49 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import type {
-  DepositAddressPayload,
-  RawDepositApiSuccess,
-  RawDepositApiError,
-} from "@/types/wallet";
+import type { RawDepositApiError } from "@/types/wallet";
 import { useTranslations } from "next-intl";
 
-function isSuccessJson(v: unknown): v is RawDepositApiSuccess {
+// ✅ [추가] WalletTxItem 타입 (백엔드와 일치)
+interface WalletTxItem {
+  id: string;
+  amount: string; // API에서 string으로 받음
+  tokenCode: string;
+  txHash: string | null;
+  status: "PENDING" | "COMPLETED" | "FAILED" | string; // 실제 Enum 값에 따라 조정 필요
+  createdAt: string | Date; // API에서 문자열로 받을 수 있으므로 string | Date로 설정
+}
+
+// ✅ [수정] DepositAddressPayload 타입에 recentTxs 추가
+export interface DepositAddressPayload {
+  depositAddress: string;
+  network: "BEP-20";
+  recentTxs: WalletTxItem[]; // ✅ 트랜잭션 목록 추가
+}
+
+// RawDepositApiSuccess를 대신하는 확장된 타입 정의 (API 응답 구조와 일치)
+interface RawDepositApiSuccessWithTxs {
+  ok: true;
+  depositAddress: string;
+  provisioned: boolean;
+  recentTxs: {
+    id: string;
+    amount: unknown; // number | string일 수 있음
+    tokenCode: string;
+    txHash: string | null;
+    status: string;
+    createdAt: string;
+  }[]; // JSON 응답은 Date를 문자열로 포함
+}
+
+function isSuccessJson(v: unknown): v is RawDepositApiSuccessWithTxs {
   if (typeof v !== "object" || v === null) return false;
   const x = v as Record<string, unknown>;
-  return x.ok === true && typeof x.depositAddress === "string";
+  return (
+    x.ok === true &&
+    typeof x.depositAddress === "string" &&
+    Array.isArray(x.recentTxs)
+  );
 }
 function isErrorJson(v: unknown): v is RawDepositApiError {
   if (typeof v !== "object" || v === null) return false;
@@ -88,6 +120,13 @@ export function useDepositAddress(): UseDepositAddressResult {
 
       fetchedRef.current = true;
 
+      // ✅ [추가] 트랜잭션의 createdAt 문자열을 Date 객체로 변환
+      const processedTxs = json.recentTxs.map((tx) => ({
+        ...tx,
+        // amount는 string으로 오기 때문에 그대로 사용, createdAt만 Date 객체로 변환
+        createdAt: new Date(tx.createdAt as string),
+      })) as WalletTxItem[];
+
       if (!mountedRef.current) return;
       setState({
         loading: false,
@@ -95,6 +134,7 @@ export function useDepositAddress(): UseDepositAddressResult {
         payload: {
           depositAddress: json.depositAddress,
           network: "BEP-20",
+          recentTxs: processedTxs, // ✅ 데이터 할당
         },
       });
     } catch (e) {

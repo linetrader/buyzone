@@ -1,4 +1,4 @@
-// src/app/admin/packages/history/view/HistoryClientView.tsx
+// src/app/[locale]/admin/packages/history/view/HistoryClientView.tsx
 "use client";
 
 import React from "react";

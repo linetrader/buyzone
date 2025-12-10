@@ -1,4 +1,4 @@
-// src/app/admin/packages/view/PackagesTable.tsx
+// src/app/[locale]/admin/packages/view/PackagesTable.tsx
 "use client";
 
 import Link from "next/link";
@@ -13,6 +13,7 @@ type Props = {
   total?: number;
   onPageChange?: (next: number) => void;
   onSizeChange?: (next: number) => void;
+  onDelete?: (id: string) => void;
 };
 
 export default function PackagesTable({
@@ -22,17 +23,20 @@ export default function PackagesTable({
   total,
   onPageChange,
   onSizeChange,
+  onDelete,
 }: Props) {
-  const head: readonly string[] = ["이름", "가격", "일일 DFT", "상세"] as const;
+  // ✅ [수정] 헤더에서 '일일 DFT' 제거 (총 4개 컬럼)
+  const head: readonly string[] = ["이름", "가격", "상세", "삭제"] as const;
 
+  // ✅ [수정] 행 데이터에서 dailyDftAmount 제거
   const rows: ReadonlyArray<readonly string[]> = items.map((p) => [
     p.name,
     String(p.price),
-    String(p.dailyDftAmount),
-    p.id,
+    // String(p.dailyDftAmount), // 제거됨
+    p.id, // 상세 링크용 (인덱스 2)
+    p.id, // 삭제 버튼용 (인덱스 3)
   ]);
 
-  // 페이지네이션 표시 여부: 값이 존재(undef 아님)하고 onPageChange가 있을 때만
   const canPaginate =
     page !== undefined &&
     size !== undefined &&
@@ -48,20 +52,35 @@ export default function PackagesTable({
         className="overflow-x-auto"
         tableClassName="table w-full"
         showIndex={false}
-        colAlign={["left", "right", "right", "center"]}
-        minColWidthPx={140}
+        // ✅ [수정] 정렬 기준 조정 (4개)
+        colAlign={["left", "right", "center", "center"]}
+        minColWidthPx={120}
         cellRender={(_, colIdx, cell) => {
-          if (colIdx === 1 || colIdx === 2) {
+          // 가격 (인덱스 1)
+          if (colIdx === 1) {
             return <span className="tabular-nums">{cell}</span>;
           }
-          if (colIdx === 3) {
+          // 상세 보기 (인덱스 2 - 기존 3에서 이동)
+          if (colIdx === 2) {
             return (
               <Link
                 href={`/admin/packages/${cell}`}
-                className="link link-primary"
+                className="btn btn-xs btn-outline btn-primary"
               >
                 보기
               </Link>
+            );
+          }
+          // 삭제 버튼 (인덱스 3 - 기존 4에서 이동)
+          if (colIdx === 3) {
+            return (
+              <button
+                type="button"
+                className="btn btn-xs btn-outline btn-error"
+                onClick={() => onDelete?.(cell)}
+              >
+                삭제
+              </button>
             );
           }
           return cell;

@@ -8,6 +8,7 @@ interface Props {
 }
 
 export default function WithdrawHeader({ onBack }: Props) {
+  // ✅ [수정] 네임스페이스는 "wallet.withdraw.header"
   const t = useTranslations("wallet.withdraw.header");
   return (
     <section className="space-y-2">

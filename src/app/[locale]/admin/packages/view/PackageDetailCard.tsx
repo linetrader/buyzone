@@ -1,3 +1,5 @@
+// src/app/[locale]/admin/packages/view/PackageDetailCard.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -11,7 +13,8 @@ export default function PackageDetailCard(props: { item: PackageDetail }) {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label="이름" value={item.name} />
         <Field label="가격" value={item.price} />
-        <Field label="일일 DFT 수량" value={item.dailyDftAmount} />
+        {/* ✅ [삭제] 일일 DFT 수량 필드 제거됨 */}
+
         {/* 코드 스타일 표시는 asCode로 처리 */}
         <Field label="ID" value={item.id} asCode />
       </div>

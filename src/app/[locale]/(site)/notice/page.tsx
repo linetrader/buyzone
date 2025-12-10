@@ -1,160 +1,260 @@
+// src/app/[locale]/(site)/notice/page.tsx
 "use client";
 
-import { Megaphone, Search, Calendar, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useTranslations, useFormatter } from "next-intl";
 
-export default function NoticePage() {
-  // 공지사항 더미 데이터
-  const [notices] = useState([
-    {
-      id: 1,
-      title: "시스템 정기 점검 안내 (12/10 00:00 ~ 04:00)",
-      date: "2025-12-07",
-      category: "점검",
-      isNew: true,
-    },
-    {
-      id: 2,
-      title: "신규 스테이킹 상품 출시 안내 (Premium Plan)",
-      date: "2025-12-05",
-      category: "이벤트",
-      isNew: true,
-    },
-    {
-      id: 3,
-      title: "개인정보 처리방침 변경 안내",
-      date: "2025-11-28",
-      category: "공지",
-      isNew: false,
-    },
-    {
-      id: 4,
-      title: "TRC20 입출금 일시 중단 안내",
-      date: "2025-11-20",
-      category: "긴급",
-      isNew: false,
-    },
-    {
-      id: 5,
-      title: "11월 수익률 리포트 발행",
-      date: "2025-11-01",
-      category: "공지",
-      isNew: false,
-    },
-  ]);
+// ===== Types =====
+interface SitePostListItem {
+  id: string;
+  title: string;
+  publishedAt: string; // ISO
+}
 
-  // ✅ 카테고리별 배지 스타일 (다크모드 고려)
-  const getBadgeStyle = (category: string) => {
-    const baseStyle = "badge badge-md border-0 font-normal px-3";
-    switch (category) {
-      case "긴급": return `${baseStyle} bg-error/20 text-error`; 
-      case "점검": return `${baseStyle} bg-warning/20 text-warning`;
-      case "이벤트": return `${baseStyle} bg-primary/20 text-primary`;
-      default: return `${baseStyle} bg-base-200 text-base-content/70`;
+interface SitePostDetail {
+  id: string;
+  title: string;
+  bodyHtml: string;
+  publishedAt: string | null; // ISO or null
+  createdAt: string; // ISO
+}
+
+type SiteListResult =
+  | { ok: true; data: SitePostListItem[] }
+  | { ok: false; error: string };
+
+type SiteDetailResult =
+  | { ok: true; data: SitePostDetail }
+  | { ok: false; error: string };
+
+// ===== util =====
+async function jsonFetch<T>(
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<T> {
+  const res = await fetch(input, init);
+  const ct = res.headers.get("content-type") ?? "";
+  if (!ct.includes("application/json")) {
+    const text = await res.text();
+    throw new Error(
+      `HTTP ${res.status} ${res.statusText} — non-JSON: ${text.slice(0, 300)}`
+    );
+  }
+  const data = (await res.json()) as unknown;
+  return data as T;
+}
+
+export default function NoticeSitePage() {
+  // ✅ 번역 네임스페이스: 'notice'
+  const t = useTranslations("notice");
+  const f = useFormatter();
+
+  const [list, setList] = useState<SitePostListItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [detail, setDetail] = useState<SitePostDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // ✅ [수정] API 경로 확인: /api/notice
+      const raw = await jsonFetch<SiteListResult>("/api/notice", {
+        cache: "no-store",
+      });
+      if (raw.ok) setList(raw.data);
+      else throw new Error(raw.error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknown error");
+      setList([]);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
+
+  const loadDetail = useCallback(async (id: string) => {
+    setLoadingDetail(true);
+    setErrorDetail(null);
+    try {
+      // ✅ [수정] API 경로 확인: /api/notice?id=...
+      const raw = await jsonFetch<SiteDetailResult>(
+        `/api/notice?id=${encodeURIComponent(id)}`,
+        { cache: "no-store" }
+      );
+      if (raw.ok) setDetail(raw.data);
+      else throw new Error(raw.error);
+    } catch (e) {
+      setErrorDetail(e instanceof Error ? e.message : "unknown error");
+      setDetail(null);
+    } finally {
+      setLoadingDetail(false);
+    }
+  }, []);
+
+  const clearDetail = useCallback(() => {
+    setDetail(null);
+    setErrorDetail(null);
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const ordered = useMemo(
+    () =>
+      [...list].sort((a, b) => {
+        return (b.publishedAt || "").localeCompare(a.publishedAt || "");
+      }),
+    [list]
+  );
+
+  const formatDateTime = (iso: string): string =>
+    f.dateTime(new Date(iso), {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
   return (
-    // 헤더/푸터 제거, 배경색과 폰트 설정은 유지 (레이아웃 내부 콘텐츠 영역)
-    <div className="w-full bg-base-200/50 min-h-full font-sans transition-colors duration-300">
-      <div className="container mx-auto px-4 lg:px-10 py-10">
-        
-        {/* 페이지 헤더 & 검색창 */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
-          <div>
-            <h1 className="text-3xl lg:text-4xl font-extrabold text-base-content flex items-center gap-3">
-              공지사항 <Megaphone className="text-primary" size={32} />
-            </h1>
-            <p className="text-base-content/60 mt-2 text-lg">BUYZONE의 새로운 소식과 안내사항을 확인하세요.</p>
-          </div>
-
-          {/* 검색창 */}
-          <div className="w-full md:w-auto flex justify-end">
-            <div className="relative w-full md:w-96">
-              <input 
-                type="text" 
-                placeholder="검색어를 입력하세요" 
-                className="input bg-base-100 input-bordered w-full pr-12 focus:outline-none focus:border-primary border-base-300 text-base-content placeholder:text-base-content/40" 
-              />
-              <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-base-content/40" size={20} />
-            </div>
-          </div>
+    <div className="p-6 max-w-6xl mx-auto min-h-[500px]">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          {/* notice.json 키 사용 */}
+          <h1 className="text-3xl font-bold text-gray-900">{t("title")}</h1>
+          <p className="text-base text-gray-500 mt-2">{t("subtitle")}</p>
         </div>
+        <div className="flex gap-2">
+          <button className="btn btn-sm" onClick={refresh} disabled={loading}>
+            새로고침
+          </button>
+          <Link href="/" className="btn btn-ghost btn-sm">
+            홈
+          </Link>
+        </div>
+      </div>
 
-        {/* 공지사항 리스트 카드 */}
-        <div className="card bg-base-100 shadow-xl border border-base-300 overflow-hidden mb-12">
+      {/* 에러 */}
+      {error ? (
+        <div className="alert alert-error mb-4">
+          <span>오류: {error}</span>
+        </div>
+      ) : null}
+
+      {/* 목록 */}
+      <div className="card bg-base-100 shadow-lg border border-gray-200">
+        <div className="card-body p-0">
           <div className="overflow-x-auto">
-            <table className="table table-lg">
-              {/* 테이블 헤더 */}
-              <thead className="bg-base-200/50">
-                <tr className="text-base text-base-content/70 border-b border-base-300">
-                  <th className="w-20 text-center font-normal">번호</th>
-                  <th className="w-32 text-left font-normal pl-6">분류</th>
-                  <th className="font-normal">제목</th>
-                  <th className="w-40 text-center font-normal">작성일</th>
-                  <th className="w-20 text-center"></th>
+            <table className="table table-lg w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-base font-medium">제목</th>
+                  <th className="w-48 text-base font-medium text-right pr-8">
+                    발행일
+                  </th>
                 </tr>
               </thead>
-              
-              {/* 테이블 바디 */}
               <tbody>
-                {notices.map((notice) => (
-                  <tr key={notice.id} className="hover:bg-base-200/50 transition-colors cursor-pointer group border-b border-base-200 last:border-0">
-                    <td className="text-center font-medium text-base-content/50 text-lg">{notice.id}</td>
-                    {/* 분류 배지 */}
-                    <td className="pl-6">
-                      <div className="flex justify-start">
-                        <span className={getBadgeStyle(notice.category)}>
-                          {notice.category}
-                        </span>
-                      </div>
+                {ordered.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      void loadDetail(row.id);
+                      setTimeout(() => {
+                        const detailEl =
+                          document.getElementById("notice-detail");
+                        detailEl?.scrollIntoView({ behavior: "smooth" });
+                      }, 100);
+                    }}
+                  >
+                    <td className="font-medium text-base py-4 pl-6">
+                      {row.title}
                     </td>
-                    <td>
-                      <div className="flex items-center gap-2 py-2">
-                        <span className="font-medium text-base-content text-lg group-hover:text-primary transition-colors">
-                          {notice.title}
-                        </span>
-                        {notice.isNew && (
-                          <span className="badge bg-error border-0 text-white text-xs px-1.5 py-0.5 h-auto font-bold rounded-sm">N</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="text-center text-base-content/60">
-                      <div className="flex items-center justify-center gap-1 text-base">
-                        <Calendar size={16} className="text-base-content/40" />
-                        {notice.date}
-                      </div>
-                    </td>
-                    <td className="text-center">
-                      <ChevronRight className="text-base-content/30 group-hover:text-primary transition-colors" size={24} />
+                    <td className="text-gray-500 text-right pr-8">
+                      {formatDateTime(row.publishedAt)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
 
-          {/* 데이터가 없을 경우 */}
-          {notices.length === 0 && (
-            <div className="p-10 text-center text-base-content/40">
-              검색 결과가 없습니다.
+            {loading ? (
+              <div className="py-10 text-center text-gray-500">
+                <span className="loading loading-spinner loading-md"></span>
+                <p className="mt-2 text-sm">목록을 불러오는 중...</p>
+              </div>
+            ) : null}
+
+            {ordered.length === 0 && !loading ? (
+              <div className="py-16 text-center text-gray-400">
+                <p className="text-lg">{t("empty")}</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      {/* 상세 */}
+      <div id="notice-detail" className="mt-10">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xl font-bold text-gray-800">공지 상세</h2>
+          {detail ? (
+            <button
+              className="btn btn-ghost btn-sm text-gray-500"
+              onClick={clearDetail}
+            >
+              닫기
+            </button>
+          ) : null}
+        </div>
+
+        {loadingDetail ? (
+          <div className="alert bg-base-100 shadow-sm">
+            <span className="loading loading-dots loading-sm"></span>
+            <span className="text-sm ml-2">내용을 불러오는 중...</span>
+          </div>
+        ) : null}
+
+        {errorDetail ? (
+          <div className="alert alert-error">
+            <span>상세 조회 오류: {errorDetail}</span>
+          </div>
+        ) : null}
+
+        {detail ? (
+          <div className="card bg-base-100 shadow-lg border border-gray-200">
+            <div className="card-body">
+              <h3 className="text-2xl font-bold mb-3 border-b border-gray-100 pb-4">
+                {detail.title}
+              </h3>
+              <div className="flex justify-between items-center text-sm text-gray-400 mb-6">
+                <span>
+                  발행일:{" "}
+                  {detail.publishedAt
+                    ? formatDateTime(detail.publishedAt)
+                    : "-"}
+                </span>
+              </div>
+              <div
+                className="prose max-w-none min-h-[200px] text-gray-700"
+                dangerouslySetInnerHTML={{ __html: detail.bodyHtml ?? "" }}
+              />
             </div>
-          )}
-        </div>
-
-        {/* 페이지네이션 */}
-        <div className="flex justify-center items-center gap-6 text-base-content/40 text-lg font-medium">
-          <button className="hover:text-base-content/80 transition-colors">«</button>
-          <div className="flex items-center gap-4">
-            {/* 현재 페이지만 강조 */}
-            <button className="text-primary font-bold">1</button>
-            <button className="hover:text-base-content/80 transition-colors">2</button>
-            <button className="hover:text-base-content/80 transition-colors">3</button>
-            <button className="hover:text-base-content/80 transition-colors">4</button>
           </div>
-          <button className="hover:text-base-content/80 transition-colors">»</button>
-        </div>
-
+        ) : (
+          !loadingDetail && (
+            <div className="py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300 text-gray-400">
+              목록에서 공지사항을 선택하면 내용이 여기에 표시됩니다.
+            </div>
+          )
+        )}
       </div>
     </div>
   );

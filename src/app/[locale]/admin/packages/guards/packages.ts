@@ -1,3 +1,5 @@
+// src/app/[locale]/admin/packages/guards/packages.ts
+
 import type {
   PackageRow,
   ListResp,

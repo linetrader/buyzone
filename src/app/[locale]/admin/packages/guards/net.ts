@@ -1,3 +1,5 @@
+// src/app/[locale]/admin/packages/guards/net.ts
+
 export function isAbortError(e: unknown): boolean {
   if (typeof DOMException !== "undefined" && e instanceof DOMException) {
     return e.name === "AbortError";

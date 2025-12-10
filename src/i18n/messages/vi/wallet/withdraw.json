@@ -1,38 +1,69 @@
 {
   "header": {
     "back": "Quay lại",
-    "title": "Rút (Withdraw)"
+    "title": "Rút tiền (Withdraw)"
   },
   "panel": {
-    "priceFeeTitle": "Giá & Phí rút",
-    "fee": "Phí rút: {fee}%",
-    "totalVal": "Tổng giá trị ước tính: ≈ {value} USDT"
+    "priceFeeTitle": "Hướng dẫn Phí & Giá Rút tiền",
+    "fee": "Phí Rút tiền: {fee}%",
+    "totalVal": "Tổng giá trị tài sản nắm giữ (tham khảo): ≈ {value} USDT"
+  },
+  "balance": {
+    "available": "Số dư có thể Rút"
   },
   "cards": {
-    "sectionTitle": "Yêu cầu rút theo token",
-    "hold": "Đang giữ: {amount} {token}",
+    "sectionTitle": "Yêu cầu Rút tiền theo Token",
+    "hold": "Nắm giữ: {amount} {token}",
     "amountLabel": "Số lượng",
     "amountPlaceholder": "Nhập số lượng",
     "submitTitleInvalid": "Vui lòng nhập số lượng hợp lệ.",
-    "submit": "Yêu cầu rút",
-    "est": "Quy đổi ước tính: ≈ {value} USDT",
-    "invalid": "Vui lòng nhập số lượng hợp lệ trong phạm vi số dư đang giữ."
+    "submit": "Yêu cầu Rút tiền",
+    "est": "Giá Token mỗi đơn vị ≈ {value} USDT",
+    "invalid": "Vui lòng nhập số lượng hợp lệ và trong phạm vi số dư nắm giữ."
   },
   "loading": {
-    "title": "Rút",
+    "title": "Rút tiền",
     "loading": "Đang tải",
-    "loadingDetail": "Đang tải thông tin ví / giá…"
+    "loadingDetail": "Đang tải thông tin ví/giá..."
   },
   "error": {
-    "title": "Rút",
+    "title": "Rút tiền",
     "badge": "Lỗi",
     "retry": "Thử lại"
   },
   "toast": {
-    "processing": "Đang xử lý, vui lòng chờ.",
-    "withdrawFailTitle": "Rút thất bại",
-    "withdrawOkTitle": "Đã gửi yêu cầu rút",
-    "withdrawOkDesc": "Yêu cầu rút đã được ghi nhận. (chờ xử lý)",
+    "processing": "Yêu cầu đang được xử lý. Vui lòng chờ đợi.",
+    "withdrawFailTitle": "Rút tiền thất bại",
+    "withdrawOkTitle": "Yêu cầu Rút tiền đã gửi",
+    "withdrawOkDesc": "Yêu cầu rút tiền đã được tiếp nhận (Chờ xử lý).",
     "networkErrorTitle": "Lỗi mạng"
+  },
+  "submit": {
+    "invalidAmount": "Số tiền rút không hợp lệ.",
+    "requiredFields": "Vui lòng nhập đầy đủ thông tin bắt buộc."
+  },
+  "notice": {
+    "title": "Lưu ý khi Rút tiền",
+    "checkAddress": "Vui lòng đảm bảo địa chỉ ví đã nhập là chính xác.",
+    "noRecovery": "Không thể phục hồi nếu chuyển sai địa chỉ.",
+    "minAmount": "Số tiền rút tối thiểu là {amount} {symbol}."
+  },
+  "form": {
+    "networkTitle": "Chọn Mạng lưới",
+    "addressLabel": "Địa chỉ Rút tiền",
+    "addressPlaceholder": "Nhập hoặc dán địa chỉ ví",
+    "amountLabel": "Số tiền Rút",
+    "amountPlaceholder": "Tối thiểu 10 USDT",
+    "maxAmount": "Nhập tối đa",
+    "fee": "Phí: {fee} USDT",
+    "receive": "Thực nhận: {amount} USDT",
+    "otpLabel": "Mã Google OTP",
+    "otpPlaceholder": "Nhập mã OTP 6 chữ số",
+    "submitButton": "Gửi yêu cầu Rút tiền"
+  },
+  "history": {
+    "title": "Lịch sử Rút tiền gần đây",
+    "empty": "Không có lịch sử rút tiền.",
+    "viewAll": "Xem toàn bộ lịch sử"
   }
 }

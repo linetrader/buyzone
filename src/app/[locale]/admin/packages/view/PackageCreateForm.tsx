@@ -1,3 +1,5 @@
+// src/app/[locale]/admin/packages/view/PackageCreateForm.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -5,10 +7,10 @@ import Link from "next/link";
 export default function PackageCreateForm(props: {
   name: string;
   price: string;
-  dailyDftAmount: string;
+  // dailyDftAmount 제거
   setName: (v: string) => void;
   setPrice: (v: string) => void;
-  setDailyDftAmount: (v: string) => void;
+  // setDailyDftAmount 제거
   onSubmit: () => void;
   submitting: boolean;
   decPattern: string;
@@ -16,10 +18,10 @@ export default function PackageCreateForm(props: {
   const {
     name,
     price,
-    dailyDftAmount,
+    // dailyDftAmount 제거
     setName,
     setPrice,
-    setDailyDftAmount,
+    // setDailyDftAmount 제거
     onSubmit,
     submitting,
     decPattern,
@@ -63,20 +65,7 @@ export default function PackageCreateForm(props: {
             />
           </label>
 
-          <label className="form-control">
-            <span className="label-text">일일 DFT 수량</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              pattern={decPattern}
-              className="input input-bordered"
-              placeholder="예) 1.5"
-              value={dailyDftAmount}
-              onChange={(e) => setDailyDftAmount(e.target.value)}
-              required
-              title="0 이상의 숫자(소수 허용)"
-            />
-          </label>
+          {/* 일일 DFT 수량 입력 필드 삭제됨 */}
         </div>
 
         <div className="flex gap-2">
